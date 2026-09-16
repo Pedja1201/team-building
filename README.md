@@ -10,9 +10,9 @@ uz prijavu vlasnikovim ChatGPT nalogom. Pregled ima pretragu, stranice od po 50
 prijava, osvežavanje i CSV izvoz svih prijava za Excel. Spisak i CSV proveravaju
 dozvolu na serveru. Dozvoljeni email je tajna `ADMIN_EMAIL` u Sites podešavanjima.
 
-Tri postoje?e lokalne prijave prenete su u online bazu. Duplikati su spojeni
+Tri postojeće lokalne prijave prenete su u online bazu. Duplikati su spojeni
 bez obzira na velika/mala slova, uz ranije vreme prve prijave. Privremeni
-pristup za prenos uklonjen je iz koda. Lokalni SQLite fajl ostaje sa?uvan kao
+pristup za prenos uklonjen je iz koda. Lokalni SQLite fajl ostaje sačuvan kao
 kopija i ne sinhronizuje se automatski.
 
 Priprema: `npm ci`, `npm test`, `npm run build`.

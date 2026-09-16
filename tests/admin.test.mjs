@@ -45,18 +45,3 @@ test('owner page, pagination, literal search and complete formula-safe CSV', asy
   assert.match(text, /"'=formula@example.com"/);
   db.close();
 });
-test('migration merges duplicates preserving earliest time; removing secret disables migration access', async () => {
-  const { db, env } = database();
-  const rows = [{ email: 'person@example.com', registered_at: '2026-09-15 10:00:00' }];
-  const post = token => req('/api/admin/import', { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, { method: 'POST', body: JSON.stringify(rows) });
-  assert.equal((await worker.fetch(post('secret'), env)).status, 401);
-  env.MIGRATION_TOKEN = 'secret';
-  db.prepare('INSERT INTO registrations(email, registered_at) VALUES (?, ?)').run('PERSON@example.com', '2026-09-16 12:00:00');
-  assert.equal((await worker.fetch(post('wrong'), env)).status, 401);
-  for (let n = 0; n < 2; n++) assert.equal((await worker.fetch(post('secret'), env)).status, 200);
-  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM registrations').get().n, 1);
-  assert.equal(db.prepare('SELECT registered_at FROM registrations').get().registered_at, rows[0].registered_at);
-  delete env.MIGRATION_TOKEN;
-  assert.equal((await worker.fetch(post('secret'), env)).status, 401);
-  db.close();
-});

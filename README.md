@@ -10,11 +10,10 @@ uz prijavu vlasnikovim ChatGPT nalogom. Pregled ima pretragu, stranice od po 50
 prijava, osvežavanje i CSV izvoz svih prijava za Excel. Spisak i CSV proveravaju
 dozvolu na serveru. Dozvoljeni email je tajna `ADMIN_EMAIL` u Sites podešavanjima.
 
-Jednokratni prenos lokalnih prijava koristi `/api/admin/import` i kratkotrajnu
-tajnu `MIGRATION_TOKEN`. Posle prenosa tajna se uklanja i sajt ponovo objavljuje,
-čime se taj pristup isključuje. Duplikati se spajaju bez obzira na velika/mala
-slova, uz ranije vreme prve prijave. Lokalni SQLite fajl ostaje sačuvan kao kopija
-i ne sinhronizuje se automatski.
+Tri postoje?e lokalne prijave prenete su u online bazu. Duplikati su spojeni
+bez obzira na velika/mala slova, uz ranije vreme prve prijave. Privremeni
+pristup za prenos uklonjen je iz koda. Lokalni SQLite fajl ostaje sa?uvan kao
+kopija i ne sinhronizuje se automatski.
 
 Priprema: `npm ci`, `npm test`, `npm run build`.
 Promene šeme: izmeniti `db/schema.ts`, zatim `npm run db:generate`.

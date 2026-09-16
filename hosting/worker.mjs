@@ -68,11 +68,7 @@ function csvCell(value) {
 async function admin(request, env, assets) {
   const url = new URL(request.url);
   const page = url.pathname === '/admin' || url.pathname === '/admin.html';
-  // A short-lived deployment secret is used only to import the existing local database.
-  // After migration it is removed from the runtime, disabling this authorization path.
-  const migration = url.pathname === '/api/admin/import' && env.MIGRATION_TOKEN &&
-    request.headers.get('Authorization') === `Bearer ${env.MIGRATION_TOKEN}`;
-  if (!isOwner(request, env) && !migration) {
+  if (!isOwner(request, env)) {
     if (page && !request.headers.get('oai-authenticated-user-id')) return new Response(null, {
       status: 302, headers: { Location: '/signin-with-chatgpt?return_to=%2Fadmin', 'Cache-Control': 'no-store' },
     });
@@ -86,18 +82,6 @@ async function admin(request, env, assets) {
     headers: { ...secureHeaders, 'Content-Type': 'text/html; charset=utf-8' },
   });
   try {
-    if (url.pathname === '/api/admin/import' && request.method === 'POST') {
-      if (!migration && request.headers.get('Origin') !== url.origin) return json(403, { error: 'Invalid origin' });
-      if (!request.headers.get('Content-Type')?.startsWith('application/json')) return json(415, { error: 'JSON required' });
-      if (Number(request.headers.get('Content-Length')) > 32768) return json(413, { error: 'Too large' });
-      const body = await request.text();
-      if (body.length > 32768) return json(413, { error: 'Too large' });
-      let rows;
-      try { rows = JSON.parse(body); } catch { return json(400, { error: 'Invalid JSON' }); }
-      if (!Array.isArray(rows) || rows.length > 100 || rows.some(r => !r || typeof r.email !== 'string' || r.email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(r.email) || typeof r.registered_at !== 'string' || !/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(r.registered_at))) return json(400, { error: 'Invalid rows' });
-      if (rows.length) await env.DB.batch(rows.map(r => env.DB.prepare('INSERT INTO registrations (email, registered_at) VALUES (?, ?) ON CONFLICT DO UPDATE SET registered_at = MIN(registrations.registered_at, excluded.registered_at)').bind(r.email, r.registered_at)));
-      return json(200, { ok: true, processed: rows.length });
-    }
     if (request.method !== 'GET') return json(405, { error: 'Method not allowed' });
     if (url.pathname === '/api/admin/registrations') {
       const q = (url.searchParams.get('q') || '').trim().slice(0, 254);

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="sr-Latn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Pregled prijava · Dot Networks</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#e9ebee;color:#24262d;font:16px/1.5 Arial,Helvetica,sans-serif}main{max-width:1080px;margin:40px auto;padding:32px;background:#fff;border-radius:16px;box-shadow:0 16px 60px #1d273314}header{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}.logo{width:225px;height:auto}h1{font-size:30px;margin:32px 0 6px}p{color:#626773}.tools{display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin:24px 0}label{display:block;font-size:14px;font-weight:700;margin-bottom:6px}.search{flex:1;min-width:200px}input,button,.button{font:inherit;min-height:46px;border-radius:6px;padding:10px 14px}input{border:1px solid #bfc5ce;width:100%}button,.button{border:0;background:#ffa416;color:#24262d;cursor:pointer;font-weight:700;text-decoration:none;display:inline-block}button:disabled{opacity:.5;cursor:default}a{color:#414c60}a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid #995a00;outline-offset:3px}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;text-align:left}th,td{padding:14px 12px;border-bottom:1px solid #e2e5e9;overflow-wrap:anywhere}th{font-size:14px;background:#f4f5f7}td:first-child{min-width:220px}td:last-child{white-space:nowrap}.pagination{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:24px}#status{min-height:24px}footer{margin-top:28px;font-size:14px;border-top:1px solid #e2e5e9;padding-top:20px}[hidden]{display:none!important}@media(max-width:640px){main{margin:12px;padding:20px}h1{font-size:26px}.tools>*{width:100%}.pagination{flex-wrap:wrap}}
+  </style>
+</head>
+<body>
+<main>
+  <header><img class="logo" src="Dot_Networks_Full_Color.png" alt="Dot Networks"><a href="/signout-with-chatgpt?return_to=%2F" target="_top">Odjavi se</a></header>
+  <h1>Pregled prijava</h1>
+  <p>Email adrese i vreme prve prijave. Vreme je prikazano u UTC.</p>
+  <form id="filters" class="tools">
+    <div class="search"><label for="search">Pretraži email adrese</label><input id="search" type="search" placeholder="Ime ili email adresa" maxlength="254"></div>
+    <button type="submit">Pretraži</button><button id="refresh" type="button">Osveži</button>
+    <a class="button" href="/api/admin/export.csv">Preuzmi sve prijave (CSV)</a>
+  </form>
+  <p id="status" role="status" aria-live="polite">Učitavanje prijava…</p>
+  <p id="error" role="alert" hidden></p>
+  <a id="signin" href="/signin-with-chatgpt?return_to=%2Fadmin" target="_top" hidden>Prijavi se ponovo</a>
+  <div class="table-wrap"><table aria-label="Prijavljeni učesnici"><thead><tr><th scope="col">Email adresa</th><th scope="col">Prva prijava (UTC)</th></tr></thead><tbody id="rows"></tbody></table></div>
+  <div class="pagination"><button id="previous" disabled>Prethodna</button><span id="page"></span><button id="next" disabled>Sledeća</button></div>
+  <footer><a href="index.html">← Stranica događaja</a></footer>
+</main>
+<script>
+  'use strict';
+  let currentPage = 1;
+  let query = '';
+  let pending;
+  const el = id => document.getElementById(id);
+  async function load(page = 1) {
+    pending?.abort();
+    const controller = new AbortController(); pending = controller;
+    el('error').hidden = true; el('signin').hidden = true;
+    el('status').textContent = 'Učitavanje prijava…';
+    el('previous').disabled = true; el('next').disabled = true;
+    el('rows').replaceChildren(); el('page').textContent = '';
+    try {
+      const response = await fetch('/api/admin/registrations?' + new URLSearchParams({ q: query, page }), { signal: controller.signal, cache: 'no-store' });
+      if (response.status === 401 || response.status === 403) { el('signin').hidden = false; throw new Error('Pristup je dozvoljen samo vlasniku sajta.'); }
+      if (!response.ok) throw new Error('Prijave trenutno nisu dostupne. Pokušajte ponovo preko dugmeta Osveži.');
+      const data = await response.json(); currentPage = data.page;
+      for (const row of data.rows) {
+        const tr = document.createElement('tr');
+        for (const value of [row.email, row.registered_at]) { const td = document.createElement('td'); td.textContent = value; tr.append(td); }
+        el('rows').append(tr);
+      }
+      el('status').textContent = data.total ? (query ? 'Pronađeno prijava: ' : 'Ukupno prijava: ') + data.total : (query ? 'Nema prijava za ovu pretragu.' : 'Još nema prijava.');
+      el('page').textContent = 'Stranica ' + data.page + ' od ' + Math.max(1, Math.ceil(data.total / data.pageSize));
+      el('previous').disabled = data.page <= 1; el('next').disabled = data.page * data.pageSize >= data.total;
+    } catch (error) {
+      if (error.name === 'AbortError') return;
+      el('status').textContent = ''; el('error').textContent = error.message; el('error').hidden = false;
+    }
+  }
+  el('filters').addEventListener('submit', event => { event.preventDefault(); query = el('search').value.trim(); load(); });
+  el('refresh').addEventListener('click', () => load(currentPage));
+  el('previous').addEventListener('click', () => load(currentPage - 1));
+  el('next').addEventListener('click', () => load(currentPage + 1));
+  load();
+</script>
+</body>
+</html>

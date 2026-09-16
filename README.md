@@ -5,14 +5,21 @@
 Za online sajt koristi se `hosting/worker.mjs` i trajna D1 baza. Izgled stranica
 i API `/api/registrations` ostaju isti; Python server ostaje dostupan za lokalni rad.
 Online prijave se ne upisuju u lokalni `registrations.sqlite3`, pa ih lokalni
-program `registrations_gui.py` ne prikazuje. Online baza može da se pregleda kroz
-Sites alate vlasnika sajta; spisak prijava nije javno dostupan.
-Postojeća lokalna baza nije preneta na hosting.
+program `registrations_gui.py` ne prikazuje. Online baza se pregleda na `/admin`,
+uz prijavu vlasnikovim ChatGPT nalogom. Pregled ima pretragu, stranice od po 50
+prijava, osvežavanje i CSV izvoz svih prijava za Excel. Spisak i CSV proveravaju
+dozvolu na serveru. Dozvoljeni email je tajna `ADMIN_EMAIL` u Sites podešavanjima.
+
+Jednokratni prenos lokalnih prijava koristi `/api/admin/import` i kratkotrajnu
+tajnu `MIGRATION_TOKEN`. Posle prenosa tajna se uklanja i sajt ponovo objavljuje,
+čime se taj pristup isključuje. Duplikati se spajaju bez obzira na velika/mala
+slova, uz ranije vreme prve prijave. Lokalni SQLite fajl ostaje sačuvan kao kopija
+i ne sinhronizuje se automatski.
 
 Priprema: `npm ci`, `npm test`, `npm run build`.
 Promene šeme: izmeniti `db/schema.ts`, zatim `npm run db:generate`.
 SQL migracije u `drizzle/` primenjuju se pri objavljivanju.
-Build uključuje samo dve HTML stranice i tri slike; lokalna baza i Python alati
+Build uključuje javne stranice, zaštićeni admin pregled i slike; lokalna baza i Python alati
 nisu deo javnih datoteka. Lozinke se ne šalju niti čuvaju, a email poruke se ne
 šalju automatski.
 

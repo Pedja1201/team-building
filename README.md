@@ -1,5 +1,23 @@
 # Evidencija prijava
 
+## Online hosting (Sites)
+
+Za online sajt koristi se `hosting/worker.mjs` i trajna D1 baza. Izgled stranica
+i API `/api/registrations` ostaju isti; Python server ostaje dostupan za lokalni rad.
+Online prijave se ne upisuju u lokalni `registrations.sqlite3`, pa ih lokalni
+program `registrations_gui.py` ne prikazuje. Online baza može da se pregleda kroz
+Sites alate vlasnika sajta; spisak prijava nije javno dostupan.
+Postojeća lokalna baza nije preneta na hosting.
+
+Priprema: `npm ci`, `npm test`, `npm run build`.
+Promene šeme: izmeniti `db/schema.ts`, zatim `npm run db:generate`.
+SQL migracije u `drizzle/` primenjuju se pri objavljivanju.
+Build uključuje samo dve HTML stranice i tri slike; lokalna baza i Python alati
+nisu deo javnih datoteka. Lozinke se ne šalju niti čuvaju, a email poruke se ne
+šalju automatski.
+
+## Lokalni rad
+
 Potreban je Python 3. Pokrenite `python server.py` iz ovog foldera i otvorite
 http://localhost:8000. Otvaranje HTML fajlova direktno ili preko Live Server-a
 ne pokreće API za čuvanje prijava.

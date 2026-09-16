@@ -1,0 +1,137 @@
+
+<!DOCTYPE html>
+<html lang="sr-Latn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Login page · Dot Networks</title>
+  <style>
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; min-height:100svh; display:grid; place-items:center; padding:28px 18px; font-family:Arial,Helvetica,sans-serif; color:#24262d; background:#e9ebee; }
+    body::before { content:""; position:fixed; inset:-20px; background:url("images.jpg") center / cover no-repeat; filter:blur(7px); opacity:.4; z-index:-2; }
+    body::after { content:""; position:fixed; inset:0; background:rgba(244,246,248,.48); z-index:-1; }
+    main { width:min(100%,460px); padding:36px; background:rgba(255,255,255,.96); border:1px solid #fff; border-radius:16px; box-shadow:0 24px 80px #1d273322; }
+    .logo { display:block; width:225px; max-width:100%; height:auto; margin-bottom:24px; }
+    .badge { display:inline-block; padding:7px 10px; background:#fff0d5; color:#754500; font-size:11px; font-weight:700; letter-spacing:1px; border-radius:4px; }
+    h1 { font-size:28px; line-height:1.2; letter-spacing:-.7px; margin:20px 0 12px; }
+    p { color:#626773; font-size:14px; line-height:1.65; }
+    .notice { border-left:3px solid #f33836; padding-left:12px; margin:20px 0 24px; }
+    label { display:block; font-size:13px; font-weight:700; margin:18px 0 8px; }
+    input {
+      width:100%;
+      min-height:48px;
+      padding:12px;
+      border:1px solid #d6dae0;
+      background:#fff;
+      border-radius:6px;
+      color:#24262d;
+      font:16px Arial, sans-serif;
+      cursor:text;
+    }
+    button { width:100%; min-height:48px; border:0; border-radius:6px; background:#ffa416; color:#24262d; font:700 14px Arial,sans-serif; cursor:pointer; margin-top:24px; padding:12px; }
+    button:hover { background:#ef9610; }
+    :focus-visible { outline:3px solid #995a00; outline-offset:4px; }
+    .small { font-size:12px; }
+    footer { margin-top:26px; border-top:1px solid #e2e5e9; padding-top:18px; }
+    a { color:#414c60; font-size:13px; text-underline-offset:3px; }
+    .check { display:grid; place-items:center; width:48px; height:48px; background:#edf4e6; border-radius:50%; color:#36532a; font-size:25px; margin-top:24px; }
+    ul { padding-left:20px; color:#626773; font-size:14px; line-height:1.7; }
+    li { margin-bottom:12px; }
+    [hidden] { display:none !important; }
+    @media(max-width:480px) { main { padding:26px 22px; } h1 { font-size:25px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <img class="logo" src="Dot_Networks_Full_Color.png" alt="Dot Networks" width="1417" height="413">
+
+    <section id="demo" aria-labelledby="demo-title">
+  <h1 id="demo-title">Prijava na portal</h1>
+
+  <p class="notice">
+    Prijavite se kako biste pristupili planu i programu Team Building događaja,
+    rasporedu aktivnosti i ostalim informacijama za učesnike.
+  </p>
+
+  <label for="demo-email">Email adresa</label>
+  <input
+    id="demo-email"
+    name="email"
+    type="email"
+    placeholder="Unesite email adresu"
+    autocomplete="off"
+    required
+  >
+
+  <label for="demo-password">Lozinka</label>
+  <input
+    id="demo-password"
+    name="password"
+    type="password"
+    placeholder="Unesite lozinku"
+    autocomplete="off"
+    required
+  >
+
+  <p class="small">
+    Email adresa i vreme prijave čuvaju se radi evidencije prijavljenih.
+    Lozinka se ne šalje niti čuva.
+  </p>
+
+  <button id="show-lesson" type="button">
+    Prijavi se
+  </button>
+  <p id="login-error" role="alert" hidden></p>
+    </section>
+
+    <section id="lesson" aria-labelledby="lesson-title" hidden>
+      <div class="check" aria-hidden="true">✓</div>
+      <h1 id="lesson-title" tabindex="-1">Uspešno ste se prijavili!</h1>
+      <p>Očekujte dalja uputstva na vašoj email adresi.</p>
+    </section>
+
+  
+    <footer><a href="index.html">← Povratak na stranicu događaja</a></footer>
+  </main>
+  <script>
+    'use strict';
+    for (const id of ['demo-email', 'demo-password']) {
+      document.getElementById(id).addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !event.isComposing) {
+          event.preventDefault();
+          document.getElementById('show-lesson').click();
+        }
+      });
+    }
+    document.getElementById('show-lesson').addEventListener('click', async () => {
+      const email = document.getElementById('demo-email');
+      const button = document.getElementById('show-lesson');
+      const error = document.getElementById('login-error');
+      if (!email.reportValidity()) return;
+      error.hidden = true;
+      button.disabled = true;
+      button.textContent = 'Prijavljivanje…';
+      try {
+        const response = await fetch('/api/registrations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email.value.trim() })
+        });
+        if (!response.ok) throw new Error('Prijava nije sačuvana.');
+        email.value = '';
+        document.getElementById('demo-password').value = '';
+        document.getElementById('demo').hidden = true;
+        document.getElementById('lesson').hidden = false;
+        document.getElementById('lesson-title').focus();
+      } catch {
+        error.textContent = 'Prijava nije sačuvana. Proverite da li je server pokrenut i pokušajte ponovo.';
+        error.hidden = false;
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Prijavi se';
+      }
+    });
+  </script>
+</body>
+</html>

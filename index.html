@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="sr-Latn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <meta name="referrer" content="no-referrer">
+  <title>Team Building 2026 | Dot Networks</title>
+  <style>
+    :root { --ink:#172c29; --muted:#64726b; --green:#503446; --lime:#ffa416; --paper:#faf7f2; --line:#dde2d7; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font-family:Arial,Helvetica,sans-serif; -webkit-font-smoothing:antialiased; }
+    button,input,select { font:inherit; }
+    a { color:inherit; }
+    .wrap { width:min(1200px, calc(100% - 80px)); margin:auto; }
+    header { height:96px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line); }
+    .brand { display:flex; align-items:center; flex-shrink:0; width:220px; padding:0; background:transparent; text-decoration:none; }
+    .brand img { display:block; width:100%; height:auto; }
+    nav { display:flex; align-items:center; gap:32px; font-size:13px; font-weight:600; }
+    nav a { text-decoration:none; }
+    .internal { font-size:11px; letter-spacing:1.4px; color:var(--muted); display:flex; align-items:center; gap:8px; }
+    .dot { width:6px; height:6px; background:#f33836; border-radius:50%; }
+    main { padding:49px 0 0; }
+    .eyebrow { display:flex; align-items:center; gap:10px; font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; }
+    .eyebrow:before { content:""; width:22px; height:2px; background:currentColor; }
+    .intro { display:flex; justify-content:space-between; align-items:end; gap:24px; margin:19px 0 33px; }
+    h1 { font-size:clamp(46px,5.1vw,70px); line-height:1.02; letter-spacing:-3.5px; margin:0; font-weight:700; }
+    h1 span { color:#71816a; }
+    .intro p { max-width:315px; margin:0 0 4px; font-size:14px; line-height:1.7; color:var(--muted); }
+    .grid { display:grid; grid-template-columns:minmax(0,1.22fr) minmax(0,1fr); gap:24px; align-items:stretch; }
+    .event { overflow:hidden; border-radius:18px; background:var(--green); color:white; }
+    .art { height:310px; position:relative; overflow:hidden; background:linear-gradient(180deg,rgba(35,22,31,.28),rgba(35,22,31,.12) 35%,rgba(35,22,31,.88)),url("vina-fruske-gore.jpg") center 55% / cover; }
+    .art svg { position:absolute; width:100%; height:100%; inset:0; }
+    .art-top { position:absolute; inset:25px 27px auto; display:flex; justify-content:space-between; align-items:center; font-size:10px; letter-spacing:1.7px; }
+    .pill { border:1px solid #ffffff50; padding:8px 11px; border-radius:30px; font-size:10px; letter-spacing:1px; }
+    .art-title { position:absolute; left:27px; bottom:24px; margin:0; font-size:51px; font-weight:800; line-height:.95; letter-spacing:-2px; }
+    .art-title span { color:var(--lime); }
+    .edition { position:absolute; right:27px; bottom:26px; text-align:right; font-size:10px; line-height:1.6; letter-spacing:1px; }
+    .event-info { padding:25px 28px 28px; border-top:1px solid #ffffff26; }
+    .details { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    .detail { display:flex; align-items:start; gap:12px; }
+    .icon { width:20px; height:20px; flex-shrink:0; color:var(--lime); }
+    .detail small { display:block; color:#b9cec0; font-size:10px; letter-spacing:1.2px; margin:0 0 8px; }
+    .detail strong { display:block; font-size:14px; font-weight:500; }
+    .detail p { font-size:12px; color:#b9cec0; margin:6px 0 0; }
+    .event-note { border-top:1px solid #ffffff26; margin:23px 0 0; padding-top:19px; color:#d1dfd2; font-size:12px; line-height:1.6; }
+    .card { background:#fff; border:1px solid var(--line); border-radius:18px; padding:29px 31px; }
+    .card-top { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .tag { font-size:10px; font-weight:700; color:#4d6b35; background:#eff5e4; padding:7px 10px; border-radius:5px; }
+    .step { font-size:11px; color:#788177; }
+    h2 { font-size:27px; letter-spacing:-.9px; margin:20px 0 8px; }
+    .sub { margin:0 0 24px; color:var(--muted); font-size:13px; line-height:1.65; }
+    .field { margin-bottom:18px; }
+    label { display:block; font-size:12px; font-weight:700; margin:0 0 8px; }
+    input,select { display:block; width:100%; height:46px; border:1px solid #dce1d8; border-radius:7px; padding:0 13px; background:#fff; color:var(--ink); font-size:13px; }
+    input::placeholder { color:#92998f; opacity:1; }
+    select { cursor:pointer; }
+    :focus-visible { outline:3px solid #7e9d35; outline-offset:3px; }
+    .hint { font-size:10px; line-height:1.5; color:#788177; margin:7px 0 0; }
+    .submit { text-decoration:none; width:100%; border:0; border-radius:7px; padding:15px 17px; background:var(--lime); color:var(--ink); cursor:pointer; display:flex; justify-content:center; gap:16px; align-items:center; font-size:13px; font-weight:700; transition:background .15s; }
+    .submit:hover { background:#ef9610; }
+    .privacy { margin:13px 0 0; text-align:center; font-size:10px; color:#788177; line-height:1.6; }
+    .bottom { display:grid; grid-template-columns:1fr 1fr 1fr; gap:25px; padding:32px 0; }
+    .benefit { display:flex; gap:13px; align-items:start; }
+    .number { font-size:11px; color:#71816a; border:1px solid #d8dece; border-radius:50%; width:29px; height:29px; display:grid; place-items:center; flex-shrink:0; }
+    .benefit h3 { margin:1px 0 6px; font-size:13px; }
+    .benefit p { margin:0; font-size:12px; color:var(--muted); line-height:1.6; }
+    footer { border-top:1px solid var(--line); display:flex; justify-content:space-between; gap:20px; padding:22px 0; font-size:10px; color:var(--muted); }
+    [hidden] { display:none !important; }
+    .security-icon { display:grid; place-items:center; width:48px; height:48px; border-radius:12px; background:var(--lime); font-size:24px; margin-top:24px; }
+    .awareness h2 { line-height:1.2; }
+    .awareness p,.awareness li { font-size:13px; line-height:1.7; color:#53665b; }
+    .awareness ul { padding-left:20px; margin:20px 0; }
+    .awareness li { padding-left:3px; margin-bottom:9px; }
+    .safe { padding:13px; border-radius:8px; background:#f0f5e9; }
+    @media(min-width:1400px) { main { padding-top:62px; } .art { height:330px; } }
+    @media(max-width:900px) { .wrap { width:calc(100% - 40px); } .grid { grid-template-columns:1fr 1fr; gap:16px; } .card { padding:25px 22px; } .details { grid-template-columns:1fr; gap:20px; } .intro p { max-width:260px; } .art-title { font-size:44px; } .edition { display:none; } }
+    @media(max-width:650px) { .brand { width:170px; padding:0; } nav { font-size:11px; } header { height:76px; } nav { gap:18px; } .internal { display:none; } main { padding-top:32px; } .intro { display:block; margin-bottom:26px; } h1 { font-size:49px; letter-spacing:-2.8px; } .intro p { margin-top:20px; max-width:350px; } .grid { grid-template-columns:1fr; gap:20px; } .art { height:285px; } .details { grid-template-columns:1fr 1fr; gap:12px; } .event-info { padding:23px 20px; } .detail { gap:8px; } .detail strong { font-size:12px; } .detail p { font-size:11px; } .card { padding:25px; } .bottom { grid-template-columns:1fr; gap:23px; } footer { line-height:1.6; flex-direction:column; gap:5px; } }
+    @media(max-width:380px) { header { flex-wrap:wrap; height:auto; padding:14px 0; gap:14px; } nav { width:100%; justify-content:space-between; } }
+    .grid > *, .details > *, .intro > * { min-width:0; }
+    .card-top, .art-top { flex-wrap:wrap; gap:10px; }
+    .detail strong, .awareness p, footer { overflow-wrap:anywhere; }
+    @media(max-width:900px) {
+      .internal { display:none; }
+      .intro { flex-wrap:wrap; }
+      .intro p { max-width:100%; }
+      .grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+      .details { grid-template-columns:minmax(0,1fr); }
+      input, select { font-size:16px; min-height:48px; }
+      nav a { display:inline-flex; align-items:center; min-height:44px; }
+    }
+    @media(max-width:650px) {
+      .grid { grid-template-columns:minmax(0,1fr); gap:20px; }
+      .details { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    }
+    @media(max-width:480px) {
+      .wrap { width:calc(100% - 32px); }
+      header { flex-wrap:wrap; height:auto; padding:12px 0; gap:8px; }
+      nav { width:100%; justify-content:space-between; }
+      h1 { font-size:clamp(36px,10vw,48px); letter-spacing:-1.8px; }
+      .card { padding:22px 18px; }
+      .art-top { inset:20px 20px auto; font-size:9px; letter-spacing:1px; }
+      .art-title { left:20px; font-size:clamp(34px,9vw,43px); }
+      .details { grid-template-columns:1fr; gap:20px; }
+      .detail strong { font-size:14px; }
+      .detail p { font-size:12px; }
+      .card-top { align-items:flex-start; }
+    }
+    @media(prefers-reduced-motion:reduce) { * { transition:none !important; scroll-behavior:auto !important; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <a class="brand" href="#" aria-label="Dot Networks početna"><img src="Dot_Networks_Full_Color.png" alt="Dot Networks" width="1417" height="413"></a>
+      <nav aria-label="Glavna navigacija"><a href="#dogadjaj">O događaju</a><a href="#prijava">Prijava ↗</a></nav>
+      <div class="internal"><span class="dot"></span> ZA DOT NETWORKS TIM</div>
+    </header>
+    <main>
+      <div class="eyebrow">Jedan tim. Nova energija.</div>
+      <div class="intro">
+        <h1>Team Building <span>2026.</span></h1>
+        <p>Dan za naš tim, van svakodnevnog ritma.<br>Vidimo se u vinariji Kovačević na Fruškoj gori.</p>
+      </div>
+      <div class="grid">
+        <section class="event" id="dogadjaj" aria-label="Informacije o Team Building događaju">
+          <div class="art">
+            <svg viewBox="0 0 660 340" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+              <g transform="translate(465 128)" stroke="#f4dfb7" stroke-width="2" fill="none" opacity=".8">
+                <path d="M0 0 H48 L44 46 Q24 73 4 46Z M24 61 V115 M5 116 H43"/>
+                <path d="M4 30 H44 L41 45 Q24 65 7 45Z" fill="#813953" fill-opacity=".85"/>
+                <path d="M82 31 Q79 9 97 1 M85 19 Q106 2 118 19 Q101 34 85 19"/>
+                <g fill="#503446" fill-opacity=".85">
+                  <circle cx="76" cy="43" r="10"/><circle cx="97" cy="43" r="10"/>
+                  <circle cx="66" cy="61" r="10"/><circle cx="87" cy="61" r="10"/><circle cx="108" cy="61" r="10"/>
+                  <circle cx="77" cy="79" r="10"/><circle cx="98" cy="79" r="10"/><circle cx="87" cy="97" r="10"/>
+                </g>
+              </g>
+            </svg>
+            <div class="art-top"><span>DOT NETWORKS · TEAM BUILDING</span><span class="pill">JESENJE IZDANJE</span></div>
+            <p class="art-title">Naš tim.<br><span>Novi horizonti.</span></p>
+            <div class="edition">USPORI.<br>POVEŽI SE.</div>
+          </div>
+          <div class="event-info">
+            <div class="details">
+              <div class="detail"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 2v6m10-6v6M3 11h18m-13 5h3"/></svg><div><small>KADA SE DRUŽIMO</small><strong>25. septembar 2026.</strong><p>Petak · 10:00–17:00</p></div></div>
+              <div class="detail"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg><div><small>GDE SE VIDIMO</small><strong>Vinarija Kovačević</strong><p>Fruška gora</p></div></div>
+            </div>
+            <p class="event-note">Zajednički trenuci, razgovori i pogled na Frušku goru. Pridruži nam se na danu posvećenom druženju i povezivanju našeg tima.</p>
+          </div>
+        </section>
+        <section class="card" id="prijava" aria-labelledby="form-title">
+          <div id="registration">
+            <div class="card-top"><span class="tag">PRIJAVE SU OTVORENE</span><span class="step">Do 22. septembra</span></div>
+            <h2 id="form-title">Rezerviši dan za druženje.</h2>
+            <p class="sub">Popuni kratku prijavu za Team Building.<br>Nakon potvrde možeš pogledati plan i program.</p>
+            <form id="registration-form" autocomplete="off">
+              <div class="field"><label for="full-name">Ime i prezime</label><input id="full-name" type="text" placeholder="Unesi ime i prezime" required maxlength="100" autocomplete="off"></div>
+              <div class="field"><label for="email">Poslovna email adresa</label><input id="email" type="email" placeholder="ime.prezime@kompanija.rs" required maxlength="254" autocomplete="off"><p class="hint">Koristi adresu koju koristiš na poslu.</p></div>
+              <button class="submit" type="submit">Potvrdi prijavu <span aria-hidden="true">↗</span></button>
+              <p class="privacy">Bez lozinki. Podaci se ne šalju niti čuvaju.</p>
+            </form>
+          </div>
+          <div class="awareness" id="awareness" hidden>
+            <span class="tag">PRIJAVA JE POTVRĐENA</span>
+            <div class="security-icon" aria-hidden="true">✓</div>
+            <h2 id="awareness-title" tabindex="-1">Uspešno ste se prijavili!</h2>
+            <p>Hvala na prijavi za Team Building 2026. Očekuje nas dan ispunjen druženjem, timskim aktivnostima i novim uspomenama na Fruškoj gori.</p>
+            <p class="safe"><strong>Vidimo se 25. septembra u 10:00.</strong> Mesto okupljanja je vinarija Kovačević, a druženje traje do 17:00.</p>
+            <p>Nekoliko korisnih informacija za naš zajednički dan:</p>
+            <ul><li><strong>Dobrodošlica uz kafu</strong> i kratak uvod u aktivnosti koje nas očekuju.</li><li><strong>Udobna odeća i obuća</strong> preporučuju se za šetnju i aktivnosti na otvorenom.</li><li><strong>Zajednički ručak i slobodno vreme</strong> ostavljaju dovoljno prostora za razgovor i opuštanje sa kolegama.</li></ul>
+            <p>U sledećem koraku pogledajte detaljan raspored aktivnosti putem linka ispod.</p>
+            <p><a class="submit" href="login.html" id="program-link">Pogledaj plan i program <span aria-hidden="true">↗</span></a></p><p>Radujemo se zajedničkom druženju!</p>
+          </div>
+        </section>
+      </div>
+      <section class="bottom" aria-label="Šta te očekuje">
+        <div class="benefit"><span class="number">01</span><div><h3>Doživljaj Fruške gore</h3><p>Predah od svakodnevnog ritma.<br>Prostor za nove razgovore.</p></div></div>
+        <div class="benefit"><span class="number">02</span><div><h3>Druženje van kancelarije</h3><p>Upoznaj kolege iz drugog ugla.<br>Najbolji timovi rastu zajedno.</p></div></div>
+        <div class="benefit"><span class="number">03</span><div><h3>Dan za povezivanje</h3><p>Timska radionica, ručak i druženje.<br>Zajednički trenuci koje pamtimo.</p></div></div>
+      </section>
+      <section class="card awareness" id="program" aria-labelledby="program-title" hidden style="margin-bottom:32px">
+        <span class="tag">PROGRAM DOGAĐAJA</span>
+        <h2 id="program-title" tabindex="-1">Plan i program Team Building događaja</h2>
+        <p>Vinarija Kovačević · Fruška gora · 25. septembar 2026.</p>
+        <p>Dan započinjemo dobrodošlicom i kafom, a nastavljamo timskim aktivnostima, zajedničkim ručkom i druženjem.</p>
+        <ul>
+          <li><strong>10:00–10:30</strong> · Dolazak i dobrodošlica</li>
+          <li><strong>10:30–12:00</strong> · Upoznavanje sa vinarijom</li>
+          <li><strong>12:00–13:30</strong> · Timska radionica i zajedničke aktivnosti</li>
+          <li><strong>13:30–15:00</strong> · Zajednički ručak</li>
+          <li><strong>15:00–16:30</strong> · Slobodno vreme za druženje</li>
+          <li><strong>16:30–17:00</strong> · Završetak programa</li>
+        </ul>
+      </section>
+    </main>
+    <footer><span>© 2026 Dot Networks · Zajedno stvaramo više.</span><span>Interni događaj za zaposlene</span></footer>
+  </div>
+  <script>
+    'use strict';
+    const form = document.getElementById('registration-form');
+    const registration = document.getElementById('registration');
+    const awareness = document.getElementById('awareness');
+    const card = document.getElementById('prijava');
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      // Deliberately never read, transmit, log, or persist field values.
+      form.reset();
+      registration.hidden = true;
+      awareness.hidden = false;
+      card.setAttribute('aria-labelledby', 'awareness-title');
+      document.getElementById('awareness-title').focus();
+    });
+  </script>
+</body>
+</html>

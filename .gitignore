@@ -1,0 +1,14 @@
+# Local registration data
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-*
+
+# Python and local configuration
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
+!.env.example

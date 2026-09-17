@@ -14,18 +14,18 @@
 <main>
   <header><img class="logo" src="Dot_Networks_Full_Color.png" alt="Dot Networks"><a href="/signout-with-chatgpt?return_to=%2F" target="_top">Odjavi se</a></header>
   <h1>Pregled prijava</h1>
-  <p>Email adrese i vreme prve prijave. Vreme je prikazano u UTC.</p>
+  <p>Email adrese i vreme prve prijave. Vreme i filter datuma koriste zonu Europe/Belgrade (Beograd).</p>
   <form id="filters" class="tools">
     <div class="search"><label for="search">Pretraži email adrese</label><input id="search" type="search" placeholder="Ime ili email adresa" maxlength="254"></div>
-    <div><label for="from">Od (UTC)</label><input id="from" type="date"></div>
-    <div><label for="to">Do (UTC, uključivo)</label><input id="to" type="date"></div>
+    <div><label for="from">Od (Beograd)</label><input id="from" type="date"></div>
+    <div><label for="to">Do (Beograd, uključivo)</label><input id="to" type="date"></div>
     <button type="submit">Primeni filter</button><button id="refresh" type="button">Osveži</button><button id="clear" type="button">Poništi filter</button>
     <a id="export" class="button" href="/api/admin/export.csv">Preuzmi prijave (CSV)</a>
   </form>
   <p id="status" role="status" aria-live="polite">Učitavanje prijava…</p>
   <p id="error" role="alert" hidden></p>
   <a id="signin" href="/signin-with-chatgpt?return_to=%2Fadmin" target="_top" hidden>Prijavi se ponovo</a>
-  <div class="table-wrap"><table aria-label="Prijavljeni učesnici"><thead><tr><th scope="col">Email adresa</th><th scope="col">Prva prijava (UTC)</th><th scope="col">Brisanje</th></tr></thead><tbody id="rows"></tbody></table></div>
+  <div class="table-wrap"><table aria-label="Prijavljeni učesnici"><thead><tr><th scope="col">Email adresa</th><th scope="col">Prva prijava (Beograd)</th><th scope="col">Brisanje</th></tr></thead><tbody id="rows"></tbody></table></div>
   <div class="pagination"><button id="previous" disabled>Prethodna</button><span id="page"></span><button id="next" disabled>Sledeća</button></div>
   <footer><a href="index.html">← Stranica događaja</a></footer>
 </main>
@@ -70,7 +70,7 @@
       const data = await response.json(); currentPage = data.page;
       for (const row of data.rows) {
         const tr = document.createElement('tr');
-        for (const value of [row.email, row.registered_at]) { const td = document.createElement('td'); td.textContent = value; tr.append(td); }
+        for (const value of [row.email, row.registered_at_local]) { const td = document.createElement('td'); td.textContent = value; tr.append(td); }
         const action = document.createElement('td');
         const button = document.createElement('button'); button.type = 'button'; button.className = 'delete'; button.textContent = 'Obriši'; button.disabled = deleting;
         button.setAttribute('aria-label', 'Obriši prijavu za ' + row.email);

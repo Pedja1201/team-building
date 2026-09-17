@@ -6,10 +6,10 @@ import { createWorker } from '../hosting/worker.mjs';
 const worker = createWorker({ '/admin.html': { data: btoa('private admin') } });
 const identity = { 'oai-authenticated-user-id': 'site-scoped-owner', 'oai-authenticated-user-email': 'owner@example.com' };
 const req = (path, headers = identity, options = {}) => new Request('https://example.com' + path, { headers, ...options });
-test('date filter includes both whole UTC days and matches CSV', async () => {
+test('date filter includes both whole Belgrade days and matches CSV', async () => {
   const { db, env } = database();
   const insert = db.prepare('INSERT INTO registrations (email, registered_at) VALUES (?, ?)');
-  for (const [name, date] of [['before', '2026-09-16 23:59:59'], ['start', '2026-09-17 00:00:00'], ['end', '2026-09-17 23:59:59'], ['after', '2026-09-18 00:00:00']]) insert.run(name + '@example.com', date);
+  for (const [name, date] of [['before', '2026-09-16 21:59:59'], ['start', '2026-09-16 22:00:00'], ['end', '2026-09-17 21:59:59'], ['after', '2026-09-17 22:00:00']]) insert.run(name + '@example.com', date);
   const list = async params => (await worker.fetch(req('/api/admin/registrations?' + params), env)).json();
   assert.equal((await list('from=2026-09-17&to=2026-09-17')).total, 2);
   assert.equal((await list('from=2026-09-17')).total, 3);
@@ -36,6 +36,26 @@ function database() {
   };
   return { db, env: { DB, ADMIN_EMAIL: 'owner@example.com' } };
 }
+test('Belgrade filters and display handle winter and both DST transitions', async () => {
+  for (const [day, start, end, local] of [
+    ['2026-01-15', '2026-01-14 23:00:00', '2026-01-15 23:00:00', '15.01.2026. 00:00:00'],
+    ['2026-03-29', '2026-03-28 23:00:00', '2026-03-29 22:00:00', '29.03.2026. 00:00:00'],
+    ['2026-10-25', '2026-10-24 22:00:00', '2026-10-25 23:00:00', '25.10.2026. 00:00:00'],
+  ]) {
+    const { db, env } = database();
+    const insert = db.prepare('INSERT INTO registrations (email, registered_at) VALUES (?, ?)');
+    const before = value => new Date(Date.parse(value.replace(' ', 'T') + 'Z') - 1000).toISOString().slice(0, 19).replace('T', ' ');
+    insert.run('before@example.com', before(start)); insert.run('start@example.com', start);
+    insert.run('last@example.com', before(end)); insert.run('after@example.com', end);
+    const list = await (await worker.fetch(req(`/api/admin/registrations?from=${day}&to=${day}`), env)).json();
+    assert.equal(list.total, 2);
+    assert.equal(list.rows.find(row => row.email === 'start@example.com').registered_at_local, local);
+    const csv = await (await worker.fetch(req(`/api/admin/export.csv?from=${day}&to=${day}`), env)).text();
+    assert.ok(csv.includes(local)); assert.match(csv, /Europe\/Belgrade/);
+    assert.doesNotMatch(csv, /before@example.com|after@example.com/);
+    db.close();
+  }
+});
 test('deletion requires owner and same-origin action and removes only the selected record', async () => {
   const { db, env } = database();
   const insert = db.prepare('INSERT INTO registrations (email) VALUES (?)');

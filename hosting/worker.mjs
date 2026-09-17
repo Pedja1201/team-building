@@ -65,6 +65,30 @@ function csvCell(value) {
   return '"' + text.replaceAll('"', '""') + '"';
 }
 
+const belgradeClock = new Intl.DateTimeFormat('en-GB', {
+  timeZone: 'Europe/Belgrade', year: 'numeric', month: '2-digit', day: '2-digit',
+  hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
+});
+function belgradeParts(date) {
+  return Object.fromEntries(belgradeClock.formatToParts(date).map(part => [part.type, part.value]));
+}
+function belgradeTime(utc) {
+  const p = belgradeParts(new Date(utc.replace(' ', 'T') + 'Z'));
+  return `${p.day}.${p.month}.${p.year}. ${p.hour}:${p.minute}:${p.second}`;
+}
+// Resolve each local midnight separately so DST days can have 23 or 25 hours.
+function belgradeBoundary(day, nextDay = false) {
+  if (!day) return '';
+  const target = Date.parse(day + 'T00:00:00Z') + (nextDay ? 86400000 : 0);
+  let instant = target;
+  for (let i = 0; i < 3; i++) {
+    const p = belgradeParts(new Date(instant));
+    const local = Date.parse(`${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}:${p.second}Z`);
+    instant += target - local;
+  }
+  return new Date(instant).toISOString().slice(0, 19).replace('T', ' ');
+}
+
 async function admin(request, env, assets) {
   const url = new URL(request.url);
   const page = url.pathname === '/admin' || url.pathname === '/admin.html';
@@ -95,14 +119,14 @@ async function admin(request, env, assets) {
     const to = url.searchParams.get('to') || '';
     const validDate = value => !value || (/^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value);
     if (!validDate(from) || !validDate(to) || (from && to && from > to)) return json(400, { error: 'Unesite ispravan period: datum Od mora biti pre ili jednak datumu Do.' });
-    const where = "instr(lower(email), lower(?)) > 0 AND (? = '' OR registered_at >= datetime(?)) AND (? = '' OR registered_at < datetime(?, '+1 day'))";
-    const filters = [q, from, from, to, to];
+    const where = "instr(lower(email), lower(?)) > 0 AND (? = '' OR registered_at >= ?) AND (? = '' OR registered_at < ?)";
+    const filters = [q, from, belgradeBoundary(from), to, belgradeBoundary(to, true)];
     if (url.pathname === '/api/admin/registrations') {
       const requestedPage = Math.max(1, Math.min(1000000, Number.parseInt(url.searchParams.get('page'), 10) || 1));
       const count = await env.DB.prepare('SELECT COUNT(*) AS total FROM registrations WHERE ' + where).bind(...filters).first();
       const current = Math.min(requestedPage, Math.max(1, Math.ceil(count.total / 50)));
       const result = await env.DB.prepare('SELECT id, email, registered_at FROM registrations WHERE ' + where + ' ORDER BY registered_at DESC, id DESC LIMIT 50 OFFSET ?').bind(...filters, (current - 1) * 50).all();
-      return json(200, { rows: result.results, total: count.total, page: current, pageSize: 50 });
+      return json(200, { rows: result.results.map(row => ({ ...row, registered_at_local: belgradeTime(row.registered_at) })), total: count.total, page: current, pageSize: 50 });
     }
     if (url.pathname === '/api/admin/export.csv') {
       const encoder = new TextEncoder();
@@ -113,9 +137,9 @@ async function admin(request, env, assets) {
       const stream = new ReadableStream({
         async pull(controller) {
           try {
-            if (first) { controller.enqueue(encoder.encode('\uFEFF"Email adresa","Vreme prijave (UTC)"\r\n')); first = false; }
+            if (first) { controller.enqueue(encoder.encode('\uFEFF"Email adresa","Vreme prijave (Europe/Belgrade)"\r\n')); first = false; }
             const { results } = await env.DB.prepare('SELECT id, email, registered_at FROM registrations WHERE id > ? AND id <= ? AND ' + where + ' ORDER BY id LIMIT 250').bind(cursor, upper.last, ...filters).all();
-            for (const row of results) controller.enqueue(encoder.encode(csvCell(row.email) + ',' + csvCell(row.registered_at) + '\r\n'));
+            for (const row of results) controller.enqueue(encoder.encode(csvCell(row.email) + ',' + csvCell(belgradeTime(row.registered_at)) + '\r\n'));
             if (results.length < 250) controller.close();
             else cursor = results[results.length - 1].id;
           } catch (error) { controller.error(error); }

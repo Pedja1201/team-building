@@ -82,6 +82,13 @@ async function admin(request, env, assets) {
     headers: { ...secureHeaders, 'Content-Type': 'text/html; charset=utf-8' },
   });
   try {
+    if (request.method === 'DELETE' && url.pathname.startsWith('/api/admin/registrations/')) {
+      if (request.headers.get('Origin') !== url.origin || request.headers.get('X-Admin-Action') !== 'delete-registration') return json(403, { error: 'Pristup nije dozvoljen.' });
+      const id = url.pathname.slice('/api/admin/registrations/'.length);
+      if (!/^[1-9]\d*$/.test(id) || !Number.isSafeInteger(Number(id))) return json(400, { error: 'Neispravna prijava.' });
+      const deleted = await env.DB.prepare('DELETE FROM registrations WHERE id = ? RETURNING id').bind(Number(id)).first();
+      return deleted ? json(200, { ok: true }) : json(404, { error: 'Prijava je već obrisana.' });
+    }
     if (request.method !== 'GET') return json(405, { error: 'Method not allowed' });
     const q = (url.searchParams.get('q') || '').trim().slice(0, 254);
     const from = url.searchParams.get('from') || '';
@@ -94,7 +101,7 @@ async function admin(request, env, assets) {
       const requestedPage = Math.max(1, Math.min(1000000, Number.parseInt(url.searchParams.get('page'), 10) || 1));
       const count = await env.DB.prepare('SELECT COUNT(*) AS total FROM registrations WHERE ' + where).bind(...filters).first();
       const current = Math.min(requestedPage, Math.max(1, Math.ceil(count.total / 50)));
-      const result = await env.DB.prepare('SELECT email, registered_at FROM registrations WHERE ' + where + ' ORDER BY registered_at DESC, id DESC LIMIT 50 OFFSET ?').bind(...filters, (current - 1) * 50).all();
+      const result = await env.DB.prepare('SELECT id, email, registered_at FROM registrations WHERE ' + where + ' ORDER BY registered_at DESC, id DESC LIMIT 50 OFFSET ?').bind(...filters, (current - 1) * 50).all();
       return json(200, { rows: result.results, total: count.total, page: current, pageSize: 50 });
     }
     if (url.pathname === '/api/admin/export.csv') {

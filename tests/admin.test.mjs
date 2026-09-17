@@ -36,6 +36,28 @@ function database() {
   };
   return { db, env: { DB, ADMIN_EMAIL: 'owner@example.com' } };
 }
+test('deletion requires owner and same-origin action and removes only the selected record', async () => {
+  const { db, env } = database();
+  const insert = db.prepare('INSERT INTO registrations (email) VALUES (?)');
+  insert.run('delete@example.com'); insert.run('keep@example.com');
+  const headers = { ...identity, Origin: 'https://example.com', 'X-Admin-Action': 'delete-registration' };
+  const remove = (id, h = headers, method = 'DELETE') => worker.fetch(req('/api/admin/registrations/' + id, h, { method }), env);
+  assert.equal((await remove(1, {})).status, 401);
+  assert.equal((await remove(1, { ...headers, 'oai-authenticated-user-email': 'other@example.com' })).status, 403);
+  assert.equal((await remove(1, { ...headers, Origin: 'https://other.com' })).status, 403);
+  assert.equal((await remove(1, identity)).status, 403);
+  assert.equal((await remove(1, { ...identity, Origin: 'https://example.com' })).status, 403);
+  assert.equal((await remove(1, headers, 'GET')).status, 404);
+  for (const id of ['0', '-1', '1 OR 1=1', '9007199254740992']) assert.equal((await remove(id)).status, 400);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM registrations').get().n, 2);
+  assert.equal((await remove(1)).status, 200);
+  assert.equal((await remove(1)).status, 404);
+  const list = await (await worker.fetch(req('/api/admin/registrations'), env)).json();
+  assert.equal(list.total, 1); assert.equal(list.rows[0].email, 'keep@example.com'); assert.equal(list.rows[0].id, 2);
+  const csv = await (await worker.fetch(req('/api/admin/export.csv'), env)).text();
+  assert.doesNotMatch(csv, /delete@example.com/); assert.match(csv, /keep@example.com/);
+  db.close();
+});
 test('admin page, data, export and import reject anonymous and other users', async () => {
   for (const path of ['/admin', '/admin.html', '/api/admin/registrations', '/api/admin/export.csv', '/api/admin/import']) {
     const anon = await worker.fetch(req(path, {}), { ADMIN_EMAIL: 'owner@example.com' });

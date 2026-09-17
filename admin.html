@@ -16,8 +16,10 @@
   <p>Email adrese i vreme prve prijave. Vreme je prikazano u UTC.</p>
   <form id="filters" class="tools">
     <div class="search"><label for="search">Pretraži email adrese</label><input id="search" type="search" placeholder="Ime ili email adresa" maxlength="254"></div>
-    <button type="submit">Pretraži</button><button id="refresh" type="button">Osveži</button>
-    <a class="button" href="/api/admin/export.csv">Preuzmi sve prijave (CSV)</a>
+    <div><label for="from">Od (UTC)</label><input id="from" type="date"></div>
+    <div><label for="to">Do (UTC, uključivo)</label><input id="to" type="date"></div>
+    <button type="submit">Primeni filter</button><button id="refresh" type="button">Osveži</button><button id="clear" type="button">Poništi filter</button>
+    <a id="export" class="button" href="/api/admin/export.csv">Preuzmi prijave (CSV)</a>
   </form>
   <p id="status" role="status" aria-live="polite">Učitavanje prijava…</p>
   <p id="error" role="alert" hidden></p>
@@ -30,6 +32,7 @@
   'use strict';
   let currentPage = 1;
   let query = '';
+  let from = '', to = '';
   let pending;
   const el = id => document.getElementById(id);
   async function load(page = 1) {
@@ -40,7 +43,9 @@
     el('previous').disabled = true; el('next').disabled = true;
     el('rows').replaceChildren(); el('page').textContent = '';
     try {
-      const response = await fetch('/api/admin/registrations?' + new URLSearchParams({ q: query, page }), { signal: controller.signal, cache: 'no-store' });
+      const params = new URLSearchParams({ q: query, from, to });
+      el('export').href = '/api/admin/export.csv?' + params;
+      const response = await fetch('/api/admin/registrations?' + params + '&page=' + page, { signal: controller.signal, cache: 'no-store' });
       if (response.status === 401 || response.status === 403) { el('signin').hidden = false; throw new Error('Pristup je dozvoljen samo vlasniku sajta.'); }
       if (!response.ok) throw new Error('Prijave trenutno nisu dostupne. Pokušajte ponovo preko dugmeta Osveži.');
       const data = await response.json(); currentPage = data.page;
@@ -49,7 +54,7 @@
         for (const value of [row.email, row.registered_at]) { const td = document.createElement('td'); td.textContent = value; tr.append(td); }
         el('rows').append(tr);
       }
-      el('status').textContent = data.total ? (query ? 'Pronađeno prijava: ' : 'Ukupno prijava: ') + data.total : (query ? 'Nema prijava za ovu pretragu.' : 'Još nema prijava.');
+      el('status').textContent = data.total ? ((query || from || to) ? 'Pronađeno prijava: ' : 'Ukupno prijava: ') + data.total : ((query || from || to) ? 'Nema prijava za ovaj filter.' : 'Još nema prijava.');
       el('page').textContent = 'Stranica ' + data.page + ' od ' + Math.max(1, Math.ceil(data.total / data.pageSize));
       el('previous').disabled = data.page <= 1; el('next').disabled = data.page * data.pageSize >= data.total;
     } catch (error) {
@@ -57,7 +62,14 @@
       el('status').textContent = ''; el('error').textContent = error.message; el('error').hidden = false;
     }
   }
-  el('filters').addEventListener('submit', event => { event.preventDefault(); query = el('search').value.trim(); load(); });
+  el('filters').addEventListener('submit', event => {
+    event.preventDefault();
+    if (el('from').value && el('to').value && el('from').value > el('to').value) {
+      el('error').textContent = 'Datum Od mora biti pre ili jednak datumu Do.'; el('error').hidden = false; return;
+    }
+    query = el('search').value.trim(); from = el('from').value; to = el('to').value; load();
+  });
+  el('clear').addEventListener('click', () => { el('filters').reset(); query = from = to = ''; load(); });
   el('refresh').addEventListener('click', () => load(currentPage));
   el('previous').addEventListener('click', () => load(currentPage - 1));
   el('next').addEventListener('click', () => load(currentPage + 1));

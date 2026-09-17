@@ -83,12 +83,18 @@ async function admin(request, env, assets) {
   });
   try {
     if (request.method !== 'GET') return json(405, { error: 'Method not allowed' });
+    const q = (url.searchParams.get('q') || '').trim().slice(0, 254);
+    const from = url.searchParams.get('from') || '';
+    const to = url.searchParams.get('to') || '';
+    const validDate = value => !value || (/^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value);
+    if (!validDate(from) || !validDate(to) || (from && to && from > to)) return json(400, { error: 'Unesite ispravan period: datum Od mora biti pre ili jednak datumu Do.' });
+    const where = "instr(lower(email), lower(?)) > 0 AND (? = '' OR registered_at >= datetime(?)) AND (? = '' OR registered_at < datetime(?, '+1 day'))";
+    const filters = [q, from, from, to, to];
     if (url.pathname === '/api/admin/registrations') {
-      const q = (url.searchParams.get('q') || '').trim().slice(0, 254);
       const requestedPage = Math.max(1, Math.min(1000000, Number.parseInt(url.searchParams.get('page'), 10) || 1));
-      const count = await env.DB.prepare('SELECT COUNT(*) AS total FROM registrations WHERE instr(lower(email), lower(?)) > 0').bind(q).first();
+      const count = await env.DB.prepare('SELECT COUNT(*) AS total FROM registrations WHERE ' + where).bind(...filters).first();
       const current = Math.min(requestedPage, Math.max(1, Math.ceil(count.total / 50)));
-      const result = await env.DB.prepare('SELECT email, registered_at FROM registrations WHERE instr(lower(email), lower(?)) > 0 ORDER BY registered_at DESC, id DESC LIMIT 50 OFFSET ?').bind(q, (current - 1) * 50).all();
+      const result = await env.DB.prepare('SELECT email, registered_at FROM registrations WHERE ' + where + ' ORDER BY registered_at DESC, id DESC LIMIT 50 OFFSET ?').bind(...filters, (current - 1) * 50).all();
       return json(200, { rows: result.results, total: count.total, page: current, pageSize: 50 });
     }
     if (url.pathname === '/api/admin/export.csv') {
@@ -101,7 +107,7 @@ async function admin(request, env, assets) {
         async pull(controller) {
           try {
             if (first) { controller.enqueue(encoder.encode('\uFEFF"Email adresa","Vreme prijave (UTC)"\r\n')); first = false; }
-            const { results } = await env.DB.prepare('SELECT id, email, registered_at FROM registrations WHERE id > ? AND id <= ? ORDER BY id LIMIT 250').bind(cursor, upper.last).all();
+            const { results } = await env.DB.prepare('SELECT id, email, registered_at FROM registrations WHERE id > ? AND id <= ? AND ' + where + ' ORDER BY id LIMIT 250').bind(cursor, upper.last, ...filters).all();
             for (const row of results) controller.enqueue(encoder.encode(csvCell(row.email) + ',' + csvCell(row.registered_at) + '\r\n'));
             if (results.length < 250) controller.close();
             else cursor = results[results.length - 1].id;

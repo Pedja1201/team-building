@@ -6,6 +6,23 @@ import { createWorker } from '../hosting/worker.mjs';
 const worker = createWorker({ '/admin.html': { data: btoa('private admin') } });
 const identity = { 'oai-authenticated-user-id': 'site-scoped-owner', 'oai-authenticated-user-email': 'owner@example.com' };
 const req = (path, headers = identity, options = {}) => new Request('https://example.com' + path, { headers, ...options });
+test('date filter includes both whole UTC days and matches CSV', async () => {
+  const { db, env } = database();
+  const insert = db.prepare('INSERT INTO registrations (email, registered_at) VALUES (?, ?)');
+  for (const [name, date] of [['before', '2026-09-16 23:59:59'], ['start', '2026-09-17 00:00:00'], ['end', '2026-09-17 23:59:59'], ['after', '2026-09-18 00:00:00']]) insert.run(name + '@example.com', date);
+  const list = async params => (await worker.fetch(req('/api/admin/registrations?' + params), env)).json();
+  assert.equal((await list('from=2026-09-17&to=2026-09-17')).total, 2);
+  assert.equal((await list('from=2026-09-17')).total, 3);
+  assert.equal((await list('to=2026-09-17')).total, 3);
+  assert.equal((await list('from=2026-09-17&to=2026-09-17&q=start&page=5')).page, 1);
+  assert.equal((await list('from=2026-09-19')).total, 0);
+  const csv = await (await worker.fetch(req('/api/admin/export.csv?from=2026-09-17&to=2026-09-17&q=end'), env)).text();
+  assert.match(csv, /end@example.com/); assert.doesNotMatch(csv, /start@example.com|before@example.com|after@example.com/);
+  for (const params of ['from=2026-02-30', 'to=garbage', 'from=2026-09-18&to=2026-09-17']) {
+    for (const path of ['/api/admin/registrations', '/api/admin/export.csv']) assert.equal((await worker.fetch(req(path + '?' + params), env)).status, 400);
+  }
+  db.close();
+});
 function database() {
   const db = new DatabaseSync(':memory:');
   db.exec(readFileSync('drizzle/0000_colossal_jack_flag.sql', 'utf8'));
